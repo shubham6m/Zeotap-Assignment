@@ -154,3 +154,209 @@ Feel free to fork this project, create issues, or submit pull requests for impro
 
 
 
+**Application 2 : Real-Time Data Processing System for Weather Monitoring with Rollups and Aggregates**
+---
+
+# Real-Time Weather Monitoring System
+
+## Overview
+This project is a real-time weather monitoring system that retrieves weather data from the [OpenWeatherMap API](https://openweathermap.org/). The system processes weather data for multiple cities, stores daily summaries, and triggers alerts based on user-defined thresholds. It also includes options for visualizing weather trends and conditions.
+
+The system supports periodic data fetching, rollups and aggregates (such as daily averages, minimum/maximum temperature), and customizable weather condition alerts.
+
+## Features
+- **Continuous Data Retrieval**: Fetches weather data at configurable intervals from OpenWeatherMap API for selected Indian cities (e.g., Delhi, Mumbai, Chennai, Bangalore, Kolkata, Hyderabad).
+- **Daily Summaries**: Calculates daily weather aggregates:
+  - Average temperature
+  - Maximum temperature
+  - Minimum temperature
+  - Dominant weather condition
+- **Temperature Conversion**: Converts temperatures from Kelvin to Celsius (and optionally Fahrenheit).
+- **Alerting System**: Triggers alerts when user-configured thresholds (e.g., temperature exceeding 35°C) are crossed.
+- **Visualization**: Generates visual summaries and trends of weather data.
+
+## Prerequisites
+
+- Python 3.x
+- OpenWeatherMap API key (sign up for a free API key [here](https://home.openweathermap.org/users/sign_up))
+- SQLite3 (optional but included in Python standard library)
+- Optional: Flask (if you want to run a web server for API integration)
+
+## How to Install and Run
+
+### 1. Clone the Repository
+```bash
+git clone https://github.com/your-username/weather-monitoring-system.git
+cd weather-monitoring-system
+```
+
+### 2. Set Up a Virtual Environment (Optional)
+```bash
+python3 -m venv venv
+source venv/bin/activate  # On Linux/Mac
+venv\Scripts\activate  # On Windows
+```
+
+### 3. Install Dependencies
+Install necessary Python dependencies using `pip`:
+```bash
+pip install -r requirements.txt
+```
+
+### 4. Set Up API Key
+Rename the `.env.example` file to `.env` and insert your OpenWeatherMap API key:
+```bash
+mv .env.example .env
+```
+Inside the `.env` file:
+```
+API_KEY=your_openweathermap_api_key
+```
+
+### 5. Run the Application
+Start the application, which will begin fetching weather data and generating summaries:
+```bash
+python weather_monitor.py
+```
+
+## Project Structure
+
+```bash
+.
+├── weather_monitor.py      # Main script for weather data retrieval and processing
+├── 6_check_alerts.py       # Script handling alert logic
+├── 4_process_&_store.py    # Handles SQLite database operations
+├── 7_plot_temperature_trend.py       # Generates visualizations for weather trends and summaries
+├── requirements.txt        # Python dependencies
+├── .env.example            # Example environment file for API key
+├── weather.db              # SQLite database (auto-generated)
+├── README.md               # This file
+```
+
+### Key Components
+
+1. **Weather Data Fetching**: Retrieves weather data from the OpenWeatherMap API at specified intervals (default: every 5 minutes).
+2. **Temperature Conversion**: Converts temperature data from Kelvin to Celsius, and optionally Fahrenheit.
+3. **Daily Weather Rollups**: Aggregates the fetched weather data for daily summaries, calculating:
+   - Average, maximum, minimum temperatures
+   - Dominant weather condition
+4. **Alert System**: Monitors temperature and weather conditions against user-defined thresholds and triggers alerts via the console or other notifications.
+5. **Visualization**: Generates plots and trends of historical weather data.
+
+### Configuration
+
+The system supports multiple configuration options like the frequency of weather updates, alert thresholds, and more. These can be set directly in the `weather_monitor.py` or via environment variables.
+
+### Example Weather API Response
+```json
+{
+  "main": {
+    "temp": 300.15,
+    "feels_like": 302.15,
+    "temp_min": 299.15,
+    "temp_max": 301.15
+  },
+  "weather": [{
+    "main": "Clear",
+    "description": "clear sky"
+  }],
+  "dt": 1605182400
+}
+```
+
+### Example Usage in Code
+
+#### Fetching Weather Data
+```python
+from weather_monitor import fetch_weather_data
+
+city = "Delhi"
+weather_data = fetch_weather_data(city)
+print(weather_data)
+```
+
+#### Evaluating Alerts
+```python
+from weather_alerts import check_alerts
+
+city_data = {
+    "temp": 36, 
+    "weather_condition": "Clear"
+}
+alert_triggered = check_alerts(city_data, threshold_temp=35)
+if alert_triggered:
+    print("Alert: Temperature exceeded the threshold!")
+```
+
+#### Storing Daily Weather Summary
+```python
+from weather_db import store_weather_summary
+
+city = "Mumbai"
+weather_summary = {"avg_temp": 30, "max_temp": 34, "min_temp": 28, "dominant_condition": "Clear"}
+store_weather_summary(city, weather_summary)
+```
+
+### Running Tests
+The system includes basic tests for weather fetching, data processing, and alert triggering.
+
+#### Running Unit Tests
+```bash
+python -m unittest test_weather_monitor.py
+```
+
+## Database Schema
+
+The system uses **SQLite** for persistence. The database stores daily weather summaries and includes the following schema:
+
+- **Table**: `weather_summaries`
+    - `id`: INTEGER PRIMARY KEY
+    - `city`: TEXT (name of the city)
+    - `date`: TEXT (date in `YYYY-MM-DD` format)
+    - `avg_temp`: REAL (average temperature in Celsius)
+    - `max_temp`: REAL (maximum temperature in Celsius)
+    - `min_temp`: REAL (minimum temperature in Celsius)
+    - `dominant_condition`: TEXT (dominant weather condition)
+
+Example of a weather summary:
+```sql
+INSERT INTO weather_summaries (city, date, avg_temp, max_temp, min_temp, dominant_condition)
+VALUES ('Mumbai', '2024-10-19', 30.5, 34.2, 28.3, 'Clear');
+```
+
+## Visualizations
+
+The system can generate visualizations to represent weather trends over time, using libraries like Matplotlib. The visualizations include:
+- Daily temperature trends
+- Weather condition distributions
+- Alert occurrences over time
+
+To generate and display the visualization:
+```bash
+python visualizations.py
+```
+
+## Alerts and Thresholds
+
+You can set custom thresholds for triggering alerts. For example, to trigger an alert when the temperature exceeds 35°C for two consecutive updates, you can configure the following in `weather_alerts.py`:
+```python
+THRESHOLD_TEMP = 35
+```
+
+The system will log alerts in the console and can be extended to send email or push notifications.
+
+## Future Enhancements
+- **Support for additional weather parameters**: Add features for tracking humidity, wind speed, and other conditions.
+- **Forecast integration**: Extend the system to include weather forecasts and predictive summaries.
+- **Web Interface**: Create a web-based dashboard for real-time monitoring, alerting, and data visualization using Flask.
+- **Improved Alerting**: Integrate email/SMS/notification services for more advanced alerting.
+
+---
+
+### Contributing
+Feel free to fork this repository, create issues, or submit pull requests for improvements, bug fixes, or new features.
+
+---
+
+This `README.md` provides an overview of how to install, run, and use the real-time weather monitoring system.
+
